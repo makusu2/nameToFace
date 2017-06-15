@@ -15,19 +15,18 @@ class MainRoot:
     def __init__(self):
         #self.master=master
         self.paths = self.getPaths()
-        master=Toplevel()
-        self.people = [Person(path,master) for path in self.paths]
-        self.forms = 
+        #master=Toplevel()
+        self.people = [Person(path) for path in self.paths]
     def getPaths(self):
         picturesDirectory = filedialog.askdirectory(initialdir="/", title="Please select the directory of the images")
         dirContents = [picturesDirectory+"/"+file for file in listdir(picturesDirectory)]
         filePaths = [path for path in dirContents if isfile(path)]
         return filePaths
 class Person:
-    def __init__(self,picturePath,master):
+    def __init__(self,picturePath):
         self.picturePath=picturePath
         self.firstName,self.lastName = self.extractName()
-        self.firstName,self.lastName,self.job=self.askForInfo(master)
+        self.firstName,self.lastName,self.job=self.askForInfo()
         self.image = None
     def extractName(self):
         path = self.picturePath
@@ -42,26 +41,20 @@ class Person:
             firstName = fileName[:underscoreIndex]
             lastName = fileName[underscoreIndex+1:]
             return [firstName,lastName]
-    def askForInfo(self,master):
+    def askForInfo(self):
         firstNameVar = StringVar()
         firstNameVar.set(self.firstName)
         lastNameVar = StringVar()
         lastNameVar.set(self.lastName)
         jobVar = StringVar()
-        form = Form(self,self.picturePath,firstNameVar,lastNameVar,jobVar,master)
-        self.firstName = firstnameVar.get()
-        self.lastName = lastNameVar.get()
-        self.job = jobVar.get()
+        form = Form(self,self.picturePath,firstNameVar,lastNameVar,jobVar)
         return firstNameVar.get(),lastNameVar.get(),jobVar.get()
     def __str__(self):
         return "First name: "+self.firstName+"\nLast name: "+self.lastName+"\nJob: "+self.job+"\n"
 class Form:
-    def __init__(self,person,picturePath,firstNameVar,lastNameVar,jobVar,master):
-        self.form = Frame(master)
+    def __init__(self,person,picturePath,firstNameVar,lastNameVar,jobVar):
+        self.form = Toplevel()
         self.person = person
-        self.firstNameVar = firstNameVar
-        self.lastNameVar = lastNameVar
-        self.jobVar = jobVar
         firstNameField = Entry(self.form,textvariable=firstNameVar)
         lastNameField = Entry(self.form,textvariable=lastNameVar)
         jobField = Entry(self.form,textvariable=jobVar)
@@ -77,7 +70,7 @@ class Form:
         jobField.pack()
         submitButton.pack()
         #self.form.pack()
-        #mainloop()
+        mainloop()
     def packImage(self,path):
         pilImage = Image.open(path)
         pilImage = resizeimage.resize_height(pilImage,200)
@@ -87,13 +80,8 @@ class Form:
         label.photo = image
         label.pack()
     def submit(self):
-        self.person.firstName = self.firstNameVar
-        self.person.lastName = self.lastNameVar
-        self.person.job = self.jobVar
-        self.master.
-        #self.pack_forget()
-        #self.form.quit()
-        #self.form.destroy()
+        self.form.quit()
+        self.form.destroy()
 def generateXML(people):
     root=ET.Element('people')
     for person in people:
