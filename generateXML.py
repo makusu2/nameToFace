@@ -11,77 +11,81 @@ from PIL import Image, ImageTk
 from resizeimage import resizeimage
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
-class MainRoot:
-    def __init__(self):
-        #self.master=master
+class MainRoot(Toplevel):
+    def __init__(self,*args,**kwargs):
+        Toplevel.__init__(self,*args,**kwargs)
+        #root=Tk()
+        #root.withdraw()
+        self.title="tehoi"
         self.paths = self.getPaths()
-        #master=Toplevel()
         self.people = [Person(path) for path in self.paths]
+        self.forms = [Form(self,person=person) for person in self.people]
+        self.currentForm = 0
+        self.forms[self.currentForm].pack()
+        mainloop()
     def getPaths(self):
         picturesDirectory = filedialog.askdirectory(initialdir="/", title="Please select the directory of the images")
+        #input("Press Enter to continue...")
         dirContents = [picturesDirectory+"/"+file for file in listdir(picturesDirectory)]
         filePaths = [path for path in dirContents if isfile(path)]
         return filePaths
+    def submitted(self):
+        if self.currentForm==len(self.forms)-1:
+            self.quit()
+            self.destroy()
+        else:
+            self.forms[self.currentForm].pack_forget()
+            self.currentForm+=1
+            self.forms[self.currentForm].pack()
+            self.forms[self.currentForm].focus_set()
+            self.forms[self.currentForm].jobField.focus_set()
+class Form(Frame):
+    def __init__(self,root,person=None):
+        Frame.__init__(self,root)
+        self.root=root
+        self.person=person
+        self.image=ImageTk.PhotoImage(resizeimage.resize_height(Image.open(self.person.path),200))
+        self.imageLabel=Label(self,image=self.image)
+        self.imageLabel.pack()
+        self.firstNameField=Entry(self,textvariable=person.firstNameVar)
+        self.lastNameField=Entry(self,textvariable=person.lastNameVar)
+        self.jobField=Entry(self,textvariable=person.jobVar)
+        self.submitButton=Button(self,text="Submit",command=self.submit)
+        Label(self,text="First name:").pack()
+        self.firstNameField.pack()
+        Label(self,text="Last name:").pack()
+        self.lastNameField.pack()
+        Label(self,text="Job:").pack()
+        self.jobField.pack()
+        #self.jobField.focus_set()
+        self.submitButton.pack()
+        self.bind("<Return>",self.submit)
+        self.jobField.bind("<Return>",self.submit)
+    def submit(self,event=None):
+        self.person.firstName = self.person.firstNameVar.get()
+        self.person.lastName = self.person.lastNameVar.get()
+        self.person.job=self.person.jobVar.get()
+        self.root.submitted()
 class Person:
-    def __init__(self,picturePath):
-        self.picturePath=picturePath
-        self.firstName,self.lastName = self.extractName()
-        self.firstName,self.lastName,self.job=self.askForInfo()
-        self.image = None
+    def __init__(self,path):
+        self.path=path
+        genFirstName,genLastName=self.extractName()
+        self.firstNameVar,self.lastNameVar,self.jobVar=StringVar(),StringVar(),StringVar()
+        self.firstNameVar.set(genFirstName)
+        self.lastNameVar.set(genLastName)
+        self.firstName,self.lastName,self.job="","",""
     def extractName(self):
-        path = self.picturePath
-        assert ('/' in path)
-        assert ('.' in path)
-        slashIndex = path.rfind('/')
-        dotIndex = path.rfind('.')
-        fileName = path[slashIndex+1:dotIndex]
+        assert ('/' in self.path)
+        assert ('.' in self.path)
+        slashIndex = self.path.rfind('/')
+        dotIndex = self.path.rfind('.')
+        fileName = self.path[slashIndex+1:dotIndex]
         if not "_" in fileName: return [filename,""]
         else:
             underscoreIndex = fileName.find('_')
             firstName = fileName[:underscoreIndex]
             lastName = fileName[underscoreIndex+1:]
             return [firstName,lastName]
-    def askForInfo(self):
-        firstNameVar = StringVar()
-        firstNameVar.set(self.firstName)
-        lastNameVar = StringVar()
-        lastNameVar.set(self.lastName)
-        jobVar = StringVar()
-        form = Form(self,self.picturePath,firstNameVar,lastNameVar,jobVar)
-        return firstNameVar.get(),lastNameVar.get(),jobVar.get()
-    def __str__(self):
-        return "First name: "+self.firstName+"\nLast name: "+self.lastName+"\nJob: "+self.job+"\n"
-class Form:
-    def __init__(self,person,picturePath,firstNameVar,lastNameVar,jobVar):
-        self.form = Toplevel()
-        self.person = person
-        firstNameField = Entry(self.form,textvariable=firstNameVar)
-        lastNameField = Entry(self.form,textvariable=lastNameVar)
-        jobField = Entry(self.form,textvariable=jobVar)
-        submitButton = Button(self.form,text="Submit",command=self.submit)
-        
-        self.packImage(picturePath)
-        
-        Label(self.form,text="First name:").pack()
-        firstNameField.pack()
-        Label(self.form,text="Last name:").pack()
-        lastNameField.pack()
-        Label(self.form,text="Job:").pack()
-        jobField.pack()
-        submitButton.pack()
-        #self.form.pack()
-        mainloop()
-    def packImage(self,path):
-        pilImage = Image.open(path)
-        pilImage = resizeimage.resize_height(pilImage,200)
-        self.person.image = pilImage
-        image=ImageTk.PhotoImage(pilImage)
-        label = Label(self.form,image=image)
-        label.photo = image
-        label.pack()
-    def submit(self):
-        self.form.quit()
-        self.form.destroy()
 def generateXML(people):
     root=ET.Element('people')
     for person in people:
@@ -94,7 +98,7 @@ def generateXML(people):
         jobElement=ET.SubElement(sub,'Job')
         jobElement.text=person.job
         pathElement = ET.SubElement(sub,'Path')
-        pathElement.text=person.picturePath
+        pathElement.text=person.path
         ET.dump(sub)
     pretty = xml.dom.minidom.parseString(ET.tostring(root)).toprettyxml()
     #pretty_xml = thing.toprettyxml()
