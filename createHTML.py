@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 def main():
-    tree=ET.parse('PrettyPeopleList.xml')
+    tree=ET.parse('PeopleList.xml')
     root=tree.getroot()
     people = [{'firstName':person.find('FirstName').text,'lastName':person.find('LastName').text,'job':person.find('Job').text,'path':person.find('Path').text} for person in root]
     

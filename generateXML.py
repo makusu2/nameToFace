@@ -89,7 +89,7 @@ class Person:
 def generateXML(people):
     root=ET.Element('people')
     for person in people:
-        identifier = person.firstName+person.lastName
+        identifier = (person.firstName+person.lastName).replace(" ","")
         sub = ET.SubElement(root,identifier)
         firstNameElement=ET.SubElement(sub,'FirstName')
         firstNameElement.text=person.firstName
@@ -100,6 +100,10 @@ def generateXML(people):
         pathElement = ET.SubElement(sub,'Path')
         pathElement.text=person.path
         ET.dump(sub)
+    #thing1=ET.tostring(root)
+    #print(thing1)
+    #thing2=xml.dom.minidom.parseString(thing1)
+    #thing3=thing2.toprettyxml()
     pretty = xml.dom.minidom.parseString(ET.tostring(root)).toprettyxml()
     #pretty_xml = thing.toprettyxml()
     
