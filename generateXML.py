@@ -16,7 +16,7 @@ class MainRoot(Toplevel):
         Toplevel.__init__(self,*args,**kwargs)
         #root=Tk()
         #root.withdraw()
-        self.title="tehoi"
+        #self.title="tehoi"
         self.paths = self.getPaths()
         self.people = [Person(path) for path in self.paths]
         self.forms = [Form(self,person=person) for person in self.people]
@@ -116,4 +116,4 @@ def xmlCreation():
     generateXML(people)
 def main():
     xmlCreation()
-main()
+#main()

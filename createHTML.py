@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+import os
 def main():
     tree=ET.parse('PeopleList.xml')
     root=tree.getroot()
@@ -11,7 +12,7 @@ def main():
         assert colNum in [0,1,2]
         person=people[i]
         personName = person['firstName']+" "+person['lastName']
-        innerString="\t\t\t\t<img src=\""+person['path']+"\" style=\"width: 200px; height: 200px;\" />\n\t\t\t\t<p />\n\t\t\t\t<p>"+personName+"</p>\n\t\t\t\t<p>"+person['job']+"</p>\n"
+        innerString="\t\t\t\t<img src=\""+person['path']+"\" style=\"width: 250px; height: 250px;\" />\n\t\t\t\t<center>"+personName+"</center>\n\t\t\t\t<center>"+person['job']+"</center>\n\t\t\t\t<p />\n"
         if colNum==0:
             s+="\t<div class=\"row\">\n\t\t<div class=\"col-md-12\">\n\t\t\t<div style=\"float: left; width: 33%;\">\n"
         elif colNum==1:
@@ -25,5 +26,6 @@ def main():
     file=open("htmlPeople.html","w")
     file.write(s)
     file.close()
-    
-main()
+    #os.startfile("htmlPeople.html","print")
+    #pdfkit.from_file("htmlPeople.html","pdfPeople.pdf")
+#main()
