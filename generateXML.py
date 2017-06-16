@@ -2,7 +2,6 @@ import os
 import sys
 from os import listdir
 from os.path import isfile, join
-import glob
 import tkinter
 from tkinter import *
 from tkinter import filedialog
@@ -14,32 +13,28 @@ import xml.dom.minidom
 class MainRoot(Toplevel):
     def __init__(self,*args,**kwargs):
         Toplevel.__init__(self,*args,**kwargs)
+        self.master=kwargs.get('master')
         self.paths = self.getPaths()
         self.people = [Person(path) for path in self.paths]
         self.forms = [Form(self,person=person) for person in self.people]
         self.currentForm = 0
-        self.forms[self.currentForm].pack()
-        #self.forms[self.currentForm].focus_set()
         self.lift()
-        self.forms[self.currentForm].jobField.focus_set()
+        self.forms[self.currentForm].focusOn()
         mainloop()
     def getPaths(self):
-        picturesDirectory = filedialog.askdirectory(parent=self,initialdir="/", title="Please select the directory of the images",master=self)
-        #input("Press Enter to continue...")
+        picturesDirectory = filedialog.askdirectory(parent=self,initialdir="/", title="Please select the directory of the images",master=self.master)
         dirContents = [picturesDirectory+"/"+file for file in listdir(picturesDirectory)]
         filePaths = [path for path in dirContents if isfile(path)]
         return filePaths
     def submitted(self):
+        self.forms[self.currentForm].focusOff()
         if self.currentForm==len(self.forms)-1:
             self.completedForms()
         else:
-            self.forms[self.currentForm].pack_forget()
             self.currentForm+=1
-            self.forms[self.currentForm].pack()
-            self.forms[self.currentForm].focus_set()
-            self.forms[self.currentForm].jobField.focus_set()
+            self.forms[self.currentForm].focusOn()
     def completedForms(self):
-        file = filedialog.asksaveasfile(mode='w',defaultextension=".xml")
+        file = filedialog.asksaveasfile(mode='w',defaultextension=".xml",master=self.master,title="Where would you like to save the XML file?")
         file.write(generateXML(self.people))
         file.close()
         self.quit()
@@ -63,7 +58,6 @@ class Form(Frame):
         self.lastNameField.pack()
         Label(self,text="Job:").pack()
         self.jobField.pack()
-        #self.jobField.focus_set()
         self.submitButton.pack()
         self.bind("<Return>",self.submit)
         self.jobField.bind("<Return>",self.submit)
@@ -72,6 +66,11 @@ class Form(Frame):
         self.person.lastName = self.person.lastNameVar.get()
         self.person.job=self.person.jobVar.get()
         self.root.submitted()
+    def focusOn(self):
+        self.pack()
+        self.jobField.focus_force()
+    def focusOff(self):
+        self.pack_forget()
 class Person:
     def __init__(self,path):
         self.path=path
@@ -106,20 +105,7 @@ def generateXML(people):
         pathElement = ET.SubElement(sub,'Path')
         pathElement.text=person.path
         ET.dump(sub)
-    #thing1=ET.tostring(root)
-    #print(thing1)
-    #thing2=xml.dom.minidom.parseString(thing1)
-    #thing3=thing2.toprettyxml()
     pretty = xml.dom.minidom.parseString(ET.tostring(root)).toprettyxml()
-    #pretty_xml = thing.toprettyxml()
     return pretty
-    #file=open('PeopleList.xml','w')
-    #file.write(pretty)
-    #file.close()
-#def xmlCreation():
-#    mainRoot = MainRoot(mainWindow=mainWindow)
-#    people = mainRoot.people
-#    generateXML(people)
-def main(mainWindow=Tk()):
-    mainRoot=MainRoot()
-#main()
+def main(mainWindow=None):
+    mainRoot=MainRoot(master=mainWindow)
