@@ -1,7 +1,12 @@
 import xml.etree.ElementTree as ET
 import os
-def main():
-    tree=ET.parse('PeopleList.xml')
+import tkinter
+from tkinter import *
+from tkinter import filedialog
+#import tkFileDialog
+#import tkFileDialog
+def main(mainWindow=None):
+    tree=ET.parse(filedialog.askopenfilename(parent=Tk()))
     root=tree.getroot()
     people = [{'firstName':person.find('FirstName').text,'lastName':person.find('LastName').text,'job':person.find('Job').text,'path':person.find('Path').text} for person in root]
     
@@ -23,7 +28,9 @@ def main():
         s+="\t\t\t</div>\n"
         if colNum==2 or i==len(people)-1:
             s+="\t\t</div>\n\t</div>\n</body>\n</html>\n"
-    file=open("htmlPeople.html","w")
+    #file=open("htmlPeople.html","w")
+    file=filedialog.asksaveasfile()
+    #file=open(htmlFilename)
     file.write(s)
     file.close()
     #os.startfile("htmlPeople.html","print")

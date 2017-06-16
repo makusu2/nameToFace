@@ -14,31 +14,37 @@ import xml.dom.minidom
 class MainRoot(Toplevel):
     def __init__(self,*args,**kwargs):
         Toplevel.__init__(self,*args,**kwargs)
-        #root=Tk()
-        #root.withdraw()
-        #self.title="tehoi"
         self.paths = self.getPaths()
         self.people = [Person(path) for path in self.paths]
         self.forms = [Form(self,person=person) for person in self.people]
         self.currentForm = 0
         self.forms[self.currentForm].pack()
+        #self.forms[self.currentForm].focus_set()
+        self.lift()
+        self.forms[self.currentForm].jobField.focus_set()
         mainloop()
     def getPaths(self):
-        picturesDirectory = filedialog.askdirectory(initialdir="/", title="Please select the directory of the images")
+        picturesDirectory = filedialog.askdirectory(parent=self,initialdir="/", title="Please select the directory of the images",master=self)
         #input("Press Enter to continue...")
         dirContents = [picturesDirectory+"/"+file for file in listdir(picturesDirectory)]
         filePaths = [path for path in dirContents if isfile(path)]
         return filePaths
     def submitted(self):
         if self.currentForm==len(self.forms)-1:
-            self.quit()
-            self.destroy()
+            self.completedForms()
         else:
             self.forms[self.currentForm].pack_forget()
             self.currentForm+=1
             self.forms[self.currentForm].pack()
             self.forms[self.currentForm].focus_set()
             self.forms[self.currentForm].jobField.focus_set()
+    def completedForms(self):
+        file = filedialog.asksaveasfile(mode='w',defaultextension=".xml")
+        file.write(generateXML(self.people))
+        file.close()
+        self.quit()
+        self.destroy()
+        
 class Form(Frame):
     def __init__(self,root,person=None):
         Frame.__init__(self,root)
@@ -106,14 +112,14 @@ def generateXML(people):
     #thing3=thing2.toprettyxml()
     pretty = xml.dom.minidom.parseString(ET.tostring(root)).toprettyxml()
     #pretty_xml = thing.toprettyxml()
-    
-    file=open('PeopleList.xml','w')
-    file.write(pretty)
-    file.close()
-def xmlCreation():
-    mainRoot = MainRoot()
-    people = mainRoot.people
-    generateXML(people)
-def main():
-    xmlCreation()
+    return pretty
+    #file=open('PeopleList.xml','w')
+    #file.write(pretty)
+    #file.close()
+#def xmlCreation():
+#    mainRoot = MainRoot(mainWindow=mainWindow)
+#    people = mainRoot.people
+#    generateXML(people)
+def main(mainWindow=Tk()):
+    mainRoot=MainRoot()
 #main()
