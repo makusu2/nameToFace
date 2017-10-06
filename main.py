@@ -1,41 +1,27 @@
-import tkinter
-from tkinter import *
-#import generateXML
-#import createHTML
-import os
+import tkinter as tk
+from tkinter import filedialog
 import os
 import sys
-from os import listdir
 from os.path import isfile, join
-import tkinter
-from tkinter import *
-from tkinter import filedialog
 import PIL
 from PIL import Image, ImageTk
 from resizeimage import resizeimage
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
-import xml.etree.ElementTree as ET
-import os
-import tkinter
-from tkinter import *
-from tkinter import filedialog
-class Main(Tk):
+class Main(tk.Tk):
     def __init__(self,*args,**kargs):
-        Tk.__init__(self,*args,**kargs)
-        self.xmlButton = Button(self,text="Generate XML",command=self.generateXML)
-        self.htmlButton = Button(self,text="Create HTML page",command=self.createHTML)
+        tk.Tk.__init__(self,*args,**kargs)
+        self.xmlButton = tk.Button(self,text="Generate XML",command=self.generateXML)
+        self.htmlButton = tk.Button(self,text="Create HTML page",command=self.createHTML)
         self.xmlButton.pack()
         self.htmlButton.pack()
         self.title("makuDirectory")
         self.geometry('{}x{}'.format(200,200))
-        mainloop()
+        tk.mainloop()
     def generateXML(self):
         createXML(mainWindow=self)
     def createHTML(self):
         createHTML(mainWindow=self)
-    #def openHTML(self):
-     #   os.system("start htmlPeople.html")
 def createHTML(mainWindow=None):
     tree=ET.parse(filedialog.askopenfilename(parent=mainWindow,title="Please open the XML file of the employees."))
     root=tree.getroot()
@@ -46,14 +32,10 @@ def createHTML(mainWindow=None):
         assert colNum in [0,1,2]
         personName = person['firstName']+" "+person['lastName']
         innerString="\t\t\t\t<img src=\""+person['path']+"\" style=\"width: 250px; height: 250px;\" />\n\t\t\t\t<center>"+personName+"</center>\n\t\t\t\t<center>"+person['job']+"</center>\n\t\t\t\t<p />\n"
-        if colNum==0:
-            s+="\t<div class=\"row\">\n\t\t<div class=\"col-md-12\">\n\t\t\t<div style=\"float: left; width: 33%;\">\n"
-        elif colNum==1:
-            s+="\t\t\t<div style=\"float: right; width: 33%;\">\n"
-        else:
-            s+="\t\t\t<div style=\"display: inline-block; width: 33%;\">\n"
-        s+=innerString
-        s+="\t\t\t</div>\n"
+        if colNum==0:s+="\t<div class=\"row\">\n\t\t<div class=\"col-md-12\">\n\t\t\t<div style=\"float: left; width: 33%;\">\n"
+        elif colNum==1:s+="\t\t\t<div style=\"float: right; width: 33%;\">\n"
+        else:s+="\t\t\t<div style=\"display: inline-block; width: 33%;\">\n"
+        s+=innerString+"\t\t\t</div>\n"
         if colNum==2 or i==len(people)-1:
             s+="\t\t</div>\n\t</div>\n</body>\n</html>\n"
     file=filedialog.asksaveasfile(master=mainWindow,title="Please enter the name of which the HTML file should be saved")
@@ -63,9 +45,9 @@ def createHTML(mainWindow=None):
     
     
     
-class MainRoot(Toplevel):
+class MainRoot(tk.Toplevel):
     def __init__(self,*args,**kwargs):
-        Toplevel.__init__(self,*args,**kwargs)
+        tk.Toplevel.__init__(self,*args,**kwargs)
         self.master=kwargs.get('master')
         self.paths = self.getPaths()
         self.people = [Person(path) for path in self.paths]
@@ -73,10 +55,9 @@ class MainRoot(Toplevel):
         self.currentForm = 0
         self.lift()
         self.forms[self.currentForm].focusOn()
-        mainloop()
     def getPaths(self):
         picturesDirectory = filedialog.askdirectory(parent=self,initialdir="/", title="Please select the directory of the images",master=self.master)
-        dirContents = [picturesDirectory+"/"+file for file in listdir(picturesDirectory)]
+        dirContents = [picturesDirectory+"/"+file for file in os.listdir(picturesDirectory)]
         filePaths = [path for path in dirContents if isfile(path)]
         return filePaths
     def submitted(self):
@@ -90,26 +71,25 @@ class MainRoot(Toplevel):
         file = filedialog.asksaveasfile(mode='w',defaultextension=".xml",master=self.master,title="Where would you like to save the XML file?")
         file.write(generateXML(self.people))
         file.close()
-        self.quit()
         self.destroy()
         
-class Form(Frame):
+class Form(tk.Frame):
     def __init__(self,root,person=None):
-        Frame.__init__(self,root)
+        tk.Frame.__init__(self,root)
         self.root=root
         self.person=person
         self.image=ImageTk.PhotoImage(resizeimage.resize_height(PIL.Image.open(self.person.path),200))
-        self.imageLabel=Label(self,image=self.image)
+        self.imageLabel=tk.Label(self,image=self.image)
         self.imageLabel.pack()
-        self.firstNameField=Entry(self,textvariable=person.firstNameVar)
-        self.lastNameField=Entry(self,textvariable=person.lastNameVar)
-        self.jobField=Entry(self,textvariable=person.jobVar)
-        self.submitButton=Button(self,text="Submit",command=self.submit)
-        Label(self,text="First name:").pack()
+        self.firstNameField=tk.Entry(self,textvariable=person.firstNameVar)
+        self.lastNameField=tk.Entry(self,textvariable=person.lastNameVar)
+        self.jobField=tk.Entry(self,textvariable=person.jobVar)
+        self.submitButton=tk.Button(self,text="Submit",command=self.submit)
+        tk.Label(self,text="First name:").pack()
         self.firstNameField.pack()
-        Label(self,text="Last name:").pack()
+        tk.Label(self,text="Last name:").pack()
         self.lastNameField.pack()
-        Label(self,text="Job:").pack()
+        tk.Label(self,text="Job:").pack()
         self.jobField.pack()
         self.submitButton.pack()
         self.bind("<Return>",self.submit)
@@ -128,7 +108,7 @@ class Person:
     def __init__(self,path):
         self.path=path
         genFirstName,genLastName=self.extractName()
-        self.firstNameVar,self.lastNameVar,self.jobVar=StringVar(),StringVar(),StringVar()
+        self.firstNameVar,self.lastNameVar,self.jobVar=tk.StringVar(),tk.StringVar(),tk.StringVar()
         self.firstNameVar.set(genFirstName)
         self.lastNameVar.set(genLastName)
         self.firstName,self.lastName,self.job="","",""
